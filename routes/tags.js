@@ -82,4 +82,15 @@ router.put('/:id', (req, res, next) => {
     .catch(err => { next(err); });
 });
 
+// Delete tag by ID
+router.delete('/:id', (req, res, next) => {
+  knex.del()
+    .where('id', req.params.id)
+    .from('tags')
+    .then(() => {
+      res.status(204).end();
+    })
+    .catch(err => { next(err); });
+});
+
 module.exports = router;
