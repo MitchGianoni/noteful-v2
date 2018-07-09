@@ -1,4 +1,14 @@
+DROP TABLE IF EXISTS notes_tags;
 DROP TABLE IF EXISTS notes;
+DROP TABLE IF EXISTS folders;
+DROP TABLE IF EXISTS tags;
+
+CREATE TABLE folders(
+	id serial PRIMARY KEY, 
+	name text NOT NULL);
+ALTER SEQUENCE folders_id_seq RESTART 100;
+INSERT INTO folders (name) VALUES ('Archive'), ('Drafts'), ('Personal'), ('Work');
+
 CREATE TABLE notes(
 	id serial PRIMARY KEY, 
 	title text NOT NULL, content text, 
@@ -17,9 +27,20 @@ INSERT INTO notes (title, content, folder_id) VALUES
 ('Blues sign Perron', 'Forward David Perron signed a four-year contract to return to the St. Louis Blues.', 101),
 ('Stastny to Golden Knights', 'Center Paul Stastny signed a three-year contract with the Vegas Golden Knights.', 100);		
 
-DROP TABLE IF EXISTS folders;
-CREATE TABLE folders(
-	id serial PRIMARY KEY, 
-	name text NOT NULL);
-ALTER SEQUENCE folders_id_seq RESTART 100;
-INSERT INTO folders (name) VALUES ('Archive'), ('Drafts'), ('Personal'), ('Work');
+CREATE TABLE tags(
+	id serial PRIMARY KEY,
+	name text NOT NULL UNIQUE); 
+INSERT INTO tags (name) VALUES ('F'), ('D'), ('G'), ('East'), ('West');
+
+CREATE TABLE notes_tags(
+	note_id INTEGER NOT NULL REFERENCES notes ON DELETE CASCADE,
+	tag_id INTEGER NOT NULL REFERENCES tags ON DELETE CASCADE);
+INSERT INTO notes_tags (note_id, tag_id) VALUES 
+	(1000, 1), (1000, 4), (1001, 1), (1001, 4), (1002, 3), (1002, 4), (1003, 1), (1003, 4),
+	(1004, 1), (1004, 5), (1005, 2), (1005, 4), (1006, 1), (1006, 5), (1007, 3), (1007, 4),
+	(1008, 1), (1008, 5), (1009, 1), (1009, 5);
+
+
+
+
+
