@@ -1,15 +1,14 @@
 'use strict';
 
+// Use EXPRESS
 const express = require('express');
-
 // Create an router instance (aka "mini-app")
 const router = express.Router();
-
-// // TEMP: Simple In-Memory Database
-// const data = require('../db/notes');
-// const simDB = require('../db/simDB');
-// const notes = simDB.initialize(data);
+// Use knex
 const knex = require('../knex');
+// Use Hydrator
+const hydrateNotes = require('../utils/hydrateNotes');
+
 
 // Get All (and search by query)
 router.get('/', (req, res, next) => {
@@ -38,8 +37,13 @@ router.get('/', (req, res, next) => {
       }
     })
     .orderBy('notes.id')
-    .then(results => {
-      res.json(results);
+    .then(result => {
+      if (result) {
+        const hydrated = hydrateNotes(result);
+        res.json(hydrated);
+      } else {
+        next();
+      }
     })
     .catch(err => 
       next(err));
@@ -49,23 +53,22 @@ router.get('/', (req, res, next) => {
 router.get('/:id', (req, res, next) => {
   const oneId = req.params.id;
 
-  knex.select('notes.id', 'title', 'content', 'folders.id as folderId', 'folders.name as folderName')
+  knex.select('notes.id', 'title', 'content', 'folders.id as folderId', 'folders.name as folderName', 'tags.id as tagId', 'tags.name as tagName')
     .from('notes')
     .leftJoin('folders', 'notes.folder_id', 'folders.id')
-    .modify(queryBuilder => {
-      if (oneId) {
-        queryBuilder.where('notes.id', oneId);      }
-    })
-    .then(results =>{
-      if (results[0]){
-        res.json(results[0]);
+    .leftJoin('notes_tags', 'notes.id', 'notes_tags.note_id')
+    .leftJoin('tags', 'notes_tags.tag_id', 'tags.id')
+    .where('notes.id', oneId)
+    .then(result => {
+      if (result) {
+        const hydrated = hydrateNotes(result);
+        res.json(hydrated);
       } else {
         next();
       }
     })
-    .catch(err =>{
-      next(err);
-    });
+    .catch(err => 
+      next(err));
 });
 
 // Put update an item
