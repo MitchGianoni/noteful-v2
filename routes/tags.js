@@ -17,9 +17,20 @@ router.get('/', (req, res, next) => {
     .catch(err => next(err));
 });
 
-// // Get tag by id
-// router.get('/:id', (req, res, next) => {
-// });
+// Get tag by id
+router.get('/:id', (req, res, next) => {
+  knex.first('id', 'name')
+    .where('id', req.params.id)
+    .from('tags')
+    .then(result => {
+      if(result) {
+        res.json(result);
+      } else {
+        next();
+      }
+    })
+    .catch(err => { next(err);  });
+});
 
 /* ========== POST/CREATE ITEM ========== */
 router.post('/', (req, res, next) => {
