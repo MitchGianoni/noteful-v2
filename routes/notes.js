@@ -39,11 +39,15 @@ router.get('/', (req, res, next) => {
 
 // Get a single item
 router.get('/:id', (req, res, next) => {
-  const id = req.params.id;
+  const oneId = req.params.id;
 
-  knex.select('notes.id', 'title', 'content')
+  knex.select('notes.id', 'title', 'content', 'folders.id as folderId', 'folders.name as folderName')
     .from('notes')
-    .where({id})
+    .leftJoin('folders', 'notes.folder_id', 'folders.id')
+    .modify(queryBuilder => {
+      if (oneId) {
+        queryBuilder.where('notes.id', oneId);      }
+    })
     .then(results =>{
       if (results[0]){
         res.json(results[0]);
