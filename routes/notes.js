@@ -61,7 +61,7 @@ router.get('/:id', (req, res, next) => {
     .where('notes.id', oneId)
     .then(result => {
       if (result) {
-        const hydrated = hydrateNotes(result);
+        const hydrated = hydrateNotes(result)[0];
         res.json(hydrated);
       } else {
         next();
