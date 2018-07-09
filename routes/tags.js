@@ -32,7 +32,7 @@ router.get('/:id', (req, res, next) => {
     .catch(err => { next(err);  });
 });
 
-/* ========== POST/CREATE ITEM ========== */
+// Create a tag
 router.post('/', (req, res, next) => {
   const { name } = req.body;
 
@@ -54,6 +54,32 @@ router.post('/', (req, res, next) => {
       res.location(`${req.originalUrl}/${result.id}`).status(201).json(result);
     })
     .catch(err => next(err));
+});
+
+// Update a tag by ID
+router.put('/:id', (req, res, next) => {
+  const { name } = req.body;
+
+  if (!name) {
+    const err = new Error('Missing `name` in request body');
+    err.status = 400;
+    return next(err);
+  }
+
+  const updateItem = { name };
+
+  knex('tags')
+    .update(updateItem)
+    .where('id', req.params.id)
+    .returning(['id', 'name'])
+    .then(([result]) => {
+      if (result) {
+        res.json(result);
+      } else {
+        next();
+      }
+    })
+    .catch(err => { next(err); });
 });
 
 module.exports = router;
