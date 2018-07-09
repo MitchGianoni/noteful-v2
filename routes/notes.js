@@ -95,9 +95,11 @@ router.put('/:id', (req, res, next) => {
 
 // Post (insert) an item
 router.post('/', (req, res, next) => {
-  const { title, content } = req.body;
+  const { title, content, folderId } = req.body;
 
-  const newItem = { title, content };
+  const newItem = { title, content, folder_id: folderId };
+
+  let noteId;
   /***** Never trust users - validate input *****/
   if (!newItem.title) {
     const err = new Error('Missing `title` in request body');
@@ -105,15 +107,20 @@ router.post('/', (req, res, next) => {
     return next(err);
   }
 
-  knex.from('notes')
-    .insert(newItem)
-    .returning(['id','title','content'])
-    .then(results =>{
-      res.status(201).json(results[0]);
+  knex.insert(newItem)
+    .into('notes')
+    .returning('id')
+    .then(([id]) => {
+      noteId = id;
+      return knex.select('notes.id', 'title', 'content', 'folder_id as folderId', 'folders.name as folderName')
+        .from('notes')
+        .leftJoin('folders', 'notes.folder_id', 'folders.id')
+        .where('notes.id', noteId);
     })
-    .catch(err =>{
-      next(err);
-    });
+    .then(([result]) => {
+      res.location(`${req.originalUrl}/${result.id}`).status(201).json(result);
+    })
+    .catch(err => next(err));
 });
 
 // Delete an item
